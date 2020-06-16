@@ -1,14 +1,10 @@
-import _ from 'lodash'
-import './style.css'
-import './less.less'
-import './index.scss'
-
-function component() {
-  var element = document.createElement('div')
-
-  element.innerHTML = _.join(['hello', 'webpack'], ' ')
-  // element.classList.add('hello')
-  return element
+let a = require('./a.js')
+document.getElementById('app').innerHTML = a
+// 热更新
+if (module.hot) {
+  module.hot.accept()
+  // module.hot.accept('./a.js', function () {
+  //   let a = require('./a.js')
+  //   document.getElementById('app').innerHTML = a
+  // })
 }
-
-document.body.appendChild(component())
