@@ -5,8 +5,14 @@ const path = require('path')
 const ExtractTextWebpackPlugin = require('extract-text-webpack-plugin')
 
 // 需要抽离成多个文件就使用多个实例抽离
-const cssExtract = require('extract-text-webpack-plugin')
-const lessExtract = require('extract-text-webpack-plugin')
+const cssExtract = new ExtractTextWebpackPlugin({ filename: 'css/css.css' })
+const lessExtract = new ExtractTextWebpackPlugin({ filename: 'css/less.css' })
+const sassExtract = new ExtractTextWebpackPlugin({ filename: 'css/sass.css' })
+
+const MiniCssTractPlugin = require('mini-css-extract-plugin')
+// PurgecssPlugin用于移除未使用到的css样式
+const PurgecssPlugin = require('purgecss-webpack-plugin')
+const glob = require('glob')
 
 module.exports = {
   mode: 'development',
@@ -41,26 +47,41 @@ module.exports = {
         use: cssExtract.extract({
           fallback: 'style-loader',
           // 安装postcss-loader和 autoprefixer， 使用Can I Use中的值向CSS规则添加供应商前缀，如“-webkit-”。Autoprefixer将使用基于当前浏览器流行度和属性支持的数据为您应用前缀。
+          // 使用 postcss-loader时需要配置参数options,也可以在根目录新建postcss.config.js。同时package.json也需要指定browserslist属性，否则不会生效
           use: [
-            'css-loader',
+            { loader: 'css-loader' },
             {
               loader: 'postcss-loader',
-              options: {
-                plugins: [require('autoprefixer')],
-              },
+              // options: {
+              //   ident: 'postcss',
+              //   plugins: [require('autoprefixer')],
+              // },
             },
           ],
         }),
       },
       {
         test: /\.less$/,
-        use: ExtractTextWebpackPlugin.extract({
+        // use: ExtractTextWebpackPlugin.extract({
+        //   fallback: 'style-loader',
+        //   use: ['css-loader', 'less-loader'],
+        // }),
+        use: lessExtract.extract({
           fallback: 'style-loader',
           use: ['css-loader', 'less-loader'],
         }),
         // use: lessExtract.extract({
         //   fallback: 'style-loader',
         //   use: ['css-loader', 'less-loader'],
+        // }),
+        // use: [LessMiniCssTractPlugin.loader, 'css-loader', 'less-loader'],
+      },
+      {
+        test: /\.scss$/,
+        use: [MiniCssTractPlugin.loader, 'css-loader', 'sass-loader'],
+        // use: sassExtract.extract({
+        //   fallback: 'style-loader',
+        //   use: ['css-loader', 'sass-loader'],
         // }),
       },
     ],
@@ -75,14 +96,18 @@ module.exports = {
     // }),
 
     // 使用多个实例，抽离为多个文件
-    new cssExtract({
-      filename: 'css/css.css',
-    }),
-    new lessExtract({
-      filename: 'css/less.css',
-    }),
+    lessExtract,
+    cssExtract,
+    sassExtract,
     // 简写
     // new ExtractTextWebpackPlugin('styles.css')
+    new MiniCssTractPlugin({
+      filename: 'css/scss.css',
+    }),
+    // 移除未使用到的css样式
+    new PurgecssPlugin({
+      paths: glob.sync(`${path.join(__dirname, 'src')}/**/*`, { nodir: true }),
+    }),
   ],
 }
 
