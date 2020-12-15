@@ -1,10 +1,10 @@
-let a = require('./a.js')
-document.getElementById('app').innerHTML = a
-// 热更新
-if (module.hot) {
-  module.hot.accept()
-  // module.hot.accept('./a.js', function () {
-  //   let a = require('./a.js')
-  //   document.getElementById('app').innerHTML = a
-  // })
+import _ from 'lodash';
+function component() {
+  const element = document.createElement('div');
+
+  element.innerHTML = _.join(['Hello', 'webpack'], ' ');
+
+  return element;
 }
+
+document.body.appendChild(component());
